@@ -1,0 +1,35 @@
+def pomConfig = {
+    licenses {
+        license {
+            name "MIT"
+            url "https://opensource.org/licenses/MIT"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id developperId
+            name developperName
+            organization developperOrganisation
+            organizationUrl developperOrganisationUrl
+        }
+    }
+
+    scm {
+        url projectGithubUrl
+        connection projectConnection
+        developerConnection projectDeveloperConnection
+    }
+}
+
+def withPom = { pom ->
+    pom.withXml {
+        def root = asNode()
+        root.appendNode('name', project.name)
+        root.appendNode('description', projectDescription)
+        root.appendNode('url', projectGithubUrl)
+        root.children().last() + pomConfig
+    }
+}
+
+ext.withPom = withPom
