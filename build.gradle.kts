@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.blackstone"
-version = "1.0.0"
+version = "0.1.0"
 
 
 repositories {
@@ -36,21 +36,22 @@ android {
 kotlin {
     jvm()
 
-    android {
-        publishLibraryVariants("release", "debug")
-    }
+    // I don't think this is needed because we don't have any resource dependencies like images and such
+//    android {
+//        publishLibraryVariants("release", "debug")
+//    }
 
-    iosArm32() {
+    iosArm32 {
         binaries {
             framework()
         }
     }
-    iosArm64() {
+    iosArm64 {
         binaries {
             framework()
         }
     }
-    iosX64() {
+    iosX64 {
         binaries {
             framework()
         }
@@ -68,46 +69,37 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-//                implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
                 implementation(kotlin("stdlib-jdk8"))
             }
         }
+//
+//        val androidMain by getting {
+//            dependencies {
+//                implementation(kotlin("stdlib-jdk8"))
+//            }
+//        }
 
-        val androidMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-        }
-
-//        named("nativeMain") {
-//            dependsOn(commonMain)
-//        }
-//
-//        named("iosArm64Main") {
-//            dependsOn(getAt("nativeMain"))
-//        }
-//
-//        named("iosArm32Main") {
-//            dependsOn(getAt("nativeMain"))
-//        }
-//
-//        named("iosX64Main") {
-//            dependsOn(getAt("nativeMain"))
-//        }
     }
 }
 
-//afterEvaluate {
-//    project.publishing.publications.all {
-//        groupId = group
-//        if (it.name.contains("metadata")) {
-//            artifactId = "$libraryName"
-//        } else {
-//            artifactId = "$libraryName-$name"
-//        }
-//    }
-//}
 
-//apply(from = rootProject.file("pom.gradle"))
-//apply(from = rootProject.file("gradle/publish.gradle"))
-//apply(from = rootProject.file("gradle/nexus.gradle"))
+
+publishing {
+    // this fetches our credentials from ~/.gradle/gradle.properties
+    val mavenUser: String by project
+    val mavenPassword: String by project
+
+    repositories {
+        maven {
+            setUrl("https://repos.awhb.dev/releases")
+            authentication {
+                create("basic", BasicAuthentication::class.java)
+            }
+            credentials {
+                username = mavenUser
+                password = mavenPassword
+            }
+        }
+    }
+}
+
