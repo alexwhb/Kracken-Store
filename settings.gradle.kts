@@ -14,7 +14,4 @@ pluginManagement {
 }
 
 
-
-
-
 rootProject.name = "Kracken"
