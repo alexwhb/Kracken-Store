@@ -1,7 +1,7 @@
 //import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
-    kotlin("multiplatform") version "1.6.10"
+    kotlin("multiplatform") version "1.7.0"
     id("maven-publish")
 //    id("com.android.library")
 //    id("io.github.gradle-nexus.publish-plugin")
@@ -41,7 +41,10 @@ kotlin {
 //        publishLibraryVariants("release", "debug")
 //    }
 
-    js()
+//    js(IR){
+//        browser { binaries.executable() }
+//        nodejs { binaries.executable() }
+//    }
     watchosSimulatorArm64()
     watchos()
 
@@ -49,6 +52,11 @@ kotlin {
     val iosArm64 = iosArm64()
     val iosX64 = iosX64()
     val iosSimulatorArm64 = iosSimulatorArm64()
+//    configure(listOf(iosArm32, iosArm64, iosX64, iosSimulatorArm64)) {
+//        binaries.framework {
+//            baseName = "Kracken"
+//        }
+//    }
 
     sourceSets {
 
