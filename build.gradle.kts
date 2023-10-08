@@ -1,7 +1,7 @@
 //import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
-    kotlin("multiplatform") version "1.7.0"
+    kotlin("multiplatform") version "1.8.0"
     id("maven-publish")
 //    id("com.android.library")
 //    id("io.github.gradle-nexus.publish-plugin")
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.blackstone"
-version = "0.1.0"
+version = "0.2.0"
 
 
 repositories {
@@ -32,7 +32,6 @@ repositories {
 //}
 
 
-
 kotlin {
     jvm()
 
@@ -41,17 +40,19 @@ kotlin {
 //        publishLibraryVariants("release", "debug")
 //    }
 
-//    js(IR){
-//        browser { binaries.executable() }
-//        nodejs { binaries.executable() }
-//    }
+    js(IR) {
+        browser { binaries.executable() }
+        nodejs { binaries.executable() }
+    }
     watchosSimulatorArm64()
     watchos()
+
 
     val iosArm32 = iosArm32()
     val iosArm64 = iosArm64()
     val iosX64 = iosX64()
     val iosSimulatorArm64 = iosSimulatorArm64()
+
 //    configure(listOf(iosArm32, iosArm64, iosX64, iosSimulatorArm64)) {
 //        binaries.framework {
 //            baseName = "Kracken"
@@ -65,8 +66,9 @@ kotlin {
                 implementation(kotlin("stdlib-common"))
                 api("co.touchlab:stately-common:1.1.7")
                 api("co.touchlab:stately-concurrency:1.2.1")
+
             }
-            }
+        }
 
         val jvmMain by getting {
             dependencies {
@@ -83,18 +85,19 @@ publishing {
     // this fetches our credentials from ~/.gradle/gradle.properties
     val mavenUser: String by project
     val mavenPassword: String by project
-//
-//    repositories {
-//        maven {
-//            setUrl("https://repos.awhb.dev/releases")
-//            authentication {
-//                create("basic", BasicAuthentication::class.java)
-//            }
-//            credentials {
-//                username = mavenUser
-//                password = mavenPassword
-//            }
-//        }
-//    }
+
+    repositories {
+        maven {
+            name = "reposiliteRepositoryReleases"
+            setUrl("https://repos.awhb.dev/releases")
+            authentication {
+                create("basic", BasicAuthentication::class.java)
+            }
+            credentials {
+                username = mavenUser
+                password = mavenPassword
+            }
+        }
+    }
 }
 
