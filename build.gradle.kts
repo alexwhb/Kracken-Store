@@ -1,11 +1,7 @@
-//import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
-    kotlin("multiplatform") version "1.8.0"
+    kotlin("multiplatform") version "1.9.0"
     id("maven-publish")
-//    id("com.android.library")
-//    id("io.github.gradle-nexus.publish-plugin")
-//    id("signing")
 }
 
 group = "com.blackstone"
@@ -18,18 +14,6 @@ repositories {
     mavenLocal()
 }
 
-
-//android {
-//    compileSdkVersion(29)
-//    defaultConfig {
-//        minSdkVersion(15)
-//    }
-//
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_1_8
-//        targetCompatibility = JavaVersion.VERSION_1_8
-//    }
-//}
 
 
 kotlin {
@@ -46,14 +30,10 @@ kotlin {
     }
     watchosSimulatorArm64()
     watchos()
-
-
-    val iosArm32 = iosArm32()
-    val iosArm64 = iosArm64()
-    val iosX64 = iosX64()
-    val iosSimulatorArm64 = iosSimulatorArm64()
-
-//    configure(listOf(iosArm32, iosArm64, iosX64, iosSimulatorArm64)) {
+    iosArm64()
+    iosX64()
+    iosSimulatorArm64()
+//    configure(listOf(iosArm64, iosX64, iosSimulatorArm64, watchOsSim, watchOS)) {
 //        binaries.framework {
 //            baseName = "Kracken"
 //        }
@@ -75,7 +55,6 @@ kotlin {
                 implementation(kotlin("stdlib-jdk8"))
             }
         }
-
     }
 }
 
