@@ -46,7 +46,7 @@ open class Store<State : StateType>(
 
     private fun setState(newState: State?){
         val oldState = _state.value
-        _state.set(newState?.freeze())
+        _state.set(newState)
 
         newState?.let { newVal ->
             subscriptions.forEach {
@@ -74,7 +74,6 @@ open class Store<State : StateType>(
     val subscribersAutomaticallySkipsRepeat: Boolean = automaticallySkipRepeats
 
     init {
-        ensureNeverFrozen() // this class should never be frozen, so we call this to give a really good stack trace if it ever is.
         this._state.value?.let { this.setState(state) } ?: this.dispatch(KrackenInit())
     }
 
@@ -142,7 +141,6 @@ open class Store<State : StateType>(
 
         setState(newState)
     }
-
     override fun dispatch(action: Action) {
         this.dispatchFunction(action)
     }
