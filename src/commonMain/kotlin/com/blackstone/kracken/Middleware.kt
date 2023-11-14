@@ -27,4 +27,4 @@ import co.touchlab.stately.concurrency.AtomicReference
  */
 
 typealias DispatchFunction = (Action) -> Unit
-typealias Middleware<State> = (DispatchFunction, AtomicReference<State?>) -> (DispatchFunction) -> DispatchFunction
+typealias Middleware<State> = (DispatchFunction, () -> State?) -> (DispatchFunction) -> DispatchFunction

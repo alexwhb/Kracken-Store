@@ -30,43 +30,39 @@ import co.touchlab.stately.freeze
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-open class Store<State : StateType>(
+class Store<State: StateType> (
     private val reducer: Reducer<State>,
     state: State?,
     middleware: List<Middleware<State>> = emptyList(),
-    automaticallySkipRepeats: Boolean = true
-) : StoreType<State> {
+    automaticallySkipRepeats: Boolean = true): StoreType<State> {
 
-    private val _state: AtomicReference<State?> = AtomicReference(state)
+    private var _state: State? = state
+        set(value) {
+            val oldValue = field
+            field = value
 
-    override val state: State
-        get() {
-            return _state.value!!
-        }
-
-    private fun setState(newState: State?){
-        val oldState = _state.value
-        _state.set(newState)
-
-        newState?.let { newVal ->
-            subscriptions.forEach {
-                it.newValues(oldState, newVal)
+            value?.let {
+                subscriptions.forEach {
+                    it.newValues(oldValue, value)
+                }
             }
         }
-    }
+
+    override val state: State
+        get() { return _state!! }
 
     @Suppress("NAME_SHADOWING")
     override var dispatchFunction: DispatchFunction = middleware
         .reversed()
-        .fold({ action: Action -> this.defaultDispatch(action) }, { dispatchFunction, middleware ->
+        .fold({ action: Action -> this._defaultDispatch(action) }, { dispatchFunction, middleware ->
             val dispatch = { action: Action -> this.dispatch(action) }
-            middleware(dispatch, this._state)(dispatchFunction)
+            val getState = { this._state }
+            middleware(dispatch, getState)(dispatchFunction)
         })
 
     val subscriptions: MutableList<SubscriptionBox<State, Any>> = mutableListOf()
 
     private var isDispatching = false
-
 
     /**
      * Indicates if new subscriptions attempt to apply `skipRepeats` by default.
@@ -74,14 +70,14 @@ open class Store<State : StateType>(
     val subscribersAutomaticallySkipsRepeat: Boolean = automaticallySkipRepeats
 
     init {
-        this._state.value?.let { this.setState(state) } ?: this.dispatch(KrackenInit())
+        this._state?.let { this._state = state } ?: this.dispatch(KrackenInit())
     }
 
-    override fun <S : StoreSubscriber<State>> subscribe(subscriber: S) {
+    override fun <S: StoreSubscriber<State>> subscribe(subscriber: S) {
 
         // if subscribersAutomaticallySkipsRepeat is set
         // skipRepeats will be applied with kotlin structural equality
-        if (subscribersAutomaticallySkipsRepeat) {
+        if (subscribersAutomaticallySkipsRepeat){
             this.subscribe(subscriber) {
                 it.skipRepeats()
             }
@@ -90,14 +86,14 @@ open class Store<State : StateType>(
         }
     }
 
-    override fun <SelectedState : Any, S : StoreSubscriber<SelectedState>> subscribe(
+    override fun <SelectedState: Any, S: StoreSubscriber<SelectedState>> subscribe(
         subscriber: S,
         transform: ((Subscription<State>) -> Subscription<SelectedState>)?
     ) {
         // If the same subscriber is already registered with the store, replace the existing
         // subscription with the new one.
         val index = this.subscriptions.indexOfFirst { it.subscriber == subscriber }
-        if (index != -1) {
+        if (index != -1){
             this.subscriptions.removeAt(index)
         }
 
@@ -113,22 +109,22 @@ open class Store<State : StateType>(
         @Suppress("UNCHECKED_CAST")
         this.subscriptions.add(subscriptionBox as SubscriptionBox<State, Any>)
 
-        this._state.value?.let {
+        this._state?.let {
             originalSubscription.newValues(null, it)
         }
     }
 
-    override fun <SelectedState : Any> unsubscribe(subscriber: StoreSubscriber<SelectedState>) {
+    override fun <SelectedState: Any> unsubscribe(subscriber: StoreSubscriber<SelectedState>) {
         val index = this.subscriptions.indexOfFirst { it.subscriber == subscriber }
-        if (index != -1) {
+        if (index != -1){
             this.subscriptions.removeAt(index)
         }
     }
 
-    private fun defaultDispatch(action: Action) {
+    fun _defaultDispatch(action: Action){
         if (isDispatching) {
             throw Exception(
-                "ReKotlin:ConcurrentMutationError- Action has been dispatched while" +
+                "Kraken:ConcurrentMutationError- Action has been dispatched while" +
                         " a previous action is action is being processed. A reducer" +
                         " is dispatching an action, or ReKotlin is used in a concurrent context" +
                         " (e.g. from multiple threads)."
@@ -136,29 +132,27 @@ open class Store<State : StateType>(
         }
 
         this.isDispatching = true
-        val newState = reducer(action, this.state)
+        val newState = reducer(action, this._state)
         this.isDispatching = false
 
-        setState(newState)
+        this._state = newState
     }
-    override fun dispatch(action: Action) {
+
+    override fun dispatch(action: Action){
         this.dispatchFunction(action)
     }
 
-    override fun dispatch(actionCreator: ActionCreator<State, StoreType<State>>) {
+    override fun dispatch(actionCreator: ActionCreator<State, StoreType<State>>){
         actionCreator(this.state, this)?.let {
             this.dispatch(it)
         }
     }
 
-    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>) {
+    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>){
         this.dispatch(asyncActionCreator, null)
     }
 
-    override fun dispatch(
-        asyncActionCreator: AsyncActionCreator<State, StoreType<State>>,
-        callback: DispatchCallback<State>?
-    ) {
+    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>, callback: DispatchCallback<State>?){
         asyncActionCreator(this.state, this) { actionProvider ->
             val action = actionProvider(this.state, this)
 
@@ -168,7 +162,6 @@ open class Store<State : StateType>(
             }
         }
     }
-
 }
 
 typealias DispatchCallback<State> = (State) -> Unit
