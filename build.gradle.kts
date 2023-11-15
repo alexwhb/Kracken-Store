@@ -19,11 +19,6 @@ repositories {
 kotlin {
     jvm()
 
-    // I don't think this is needed because we don't have any resource dependencies like images and such
-//    android {
-//        publishLibraryVariants("release", "debug")
-//    }
-
     js(IR) {
         browser { binaries.executable() }
         nodejs { binaries.executable() }
@@ -33,20 +28,12 @@ kotlin {
     iosArm64()
     iosX64()
     iosSimulatorArm64()
-//    configure(listOf(iosArm64, iosX64, iosSimulatorArm64, watchOsSim, watchOS)) {
-//        binaries.framework {
-//            baseName = "Kracken"
-//        }
-//    }
 
     sourceSets {
 
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
-                api("co.touchlab:stately-common:1.1.7")
-                api("co.touchlab:stately-concurrency:1.2.1")
-
             }
         }
 

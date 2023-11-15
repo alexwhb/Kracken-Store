@@ -1,11 +1,6 @@
 package com.blackstone.kracken
 
 
-import co.touchlab.stately.concurrency.AtomicReference
-import co.touchlab.stately.concurrency.value
-import co.touchlab.stately.ensureNeverFrozen
-import co.touchlab.stately.freeze
-
 /**
  * Created by Taras Vozniuk on 31/07/2017.
  * Copyright © 2017 GeoThings. All rights reserved.

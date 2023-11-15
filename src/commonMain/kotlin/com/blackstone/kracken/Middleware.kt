@@ -1,6 +1,5 @@
 package com.blackstone.kracken
 
-import co.touchlab.stately.concurrency.AtomicReference
 
 /**
  * Created by Taras Vozniuk on 31/07/2017.
