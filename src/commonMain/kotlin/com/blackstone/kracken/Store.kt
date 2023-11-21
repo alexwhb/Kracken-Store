@@ -1,5 +1,7 @@
 package com.blackstone.kracken
 
+import kotlin.concurrent.Volatile
+
 
 /**
  * Created by Taras Vozniuk on 31/07/2017.
@@ -25,11 +27,12 @@ package com.blackstone.kracken
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-class Store<State: StateType> (
+class Store<State : StateType>(
     private val reducer: Reducer<State>,
     state: State?,
     middleware: List<Middleware<State>> = emptyList(),
-    automaticallySkipRepeats: Boolean = true): StoreType<State> {
+    automaticallySkipRepeats: Boolean = true
+) : StoreType<State> {
 
     private var _state: State? = state
         set(value) {
@@ -44,7 +47,9 @@ class Store<State: StateType> (
         }
 
     override val state: State
-        get() { return _state!! }
+        get() {
+            return _state!!
+        }
 
     @Suppress("NAME_SHADOWING")
     override var dispatchFunction: DispatchFunction = middleware
@@ -55,7 +60,9 @@ class Store<State: StateType> (
             middleware(dispatch, getState)(dispatchFunction)
         })
 
-    val subscriptions: MutableList<SubscriptionBox<State, Any>> = mutableListOf()
+
+    @Volatile
+    private var subscriptions: List<SubscriptionBox<State, Any>> = listOf()
 
     private var isDispatching = false
 
@@ -68,11 +75,11 @@ class Store<State: StateType> (
         this._state?.let { this._state = state } ?: this.dispatch(KrackenInit())
     }
 
-    override fun <S: StoreSubscriber<State>> subscribe(subscriber: S) {
+    override fun <S : StoreSubscriber<State>> subscribe(subscriber: S) {
 
         // if subscribersAutomaticallySkipsRepeat is set
         // skipRepeats will be applied with kotlin structural equality
-        if (subscribersAutomaticallySkipsRepeat){
+        if (subscribersAutomaticallySkipsRepeat) {
             this.subscribe(subscriber) {
                 it.skipRepeats()
             }
@@ -81,15 +88,15 @@ class Store<State: StateType> (
         }
     }
 
-    override fun <SelectedState: Any, S: StoreSubscriber<SelectedState>> subscribe(
+    override fun <SelectedState : Any, S : StoreSubscriber<SelectedState>> subscribe(
         subscriber: S,
         transform: ((Subscription<State>) -> Subscription<SelectedState>)?
     ) {
         // If the same subscriber is already registered with the store, replace the existing
         // subscription with the new one.
-        val index = this.subscriptions.indexOfFirst { it.subscriber == subscriber }
-        if (index != -1){
-            this.subscriptions.removeAt(index)
+        val hasSubscriber = this.subscriptions.any { it.subscriber == subscriber }
+        if (hasSubscriber) {
+            subscriptions = subscriptions.filter { it.subscriber != subscriber }
         }
 
         // Create a subscription for the new subscriber.
@@ -98,25 +105,24 @@ class Store<State: StateType> (
         // the subscription, e.g. in order to subselect parts of the store's state.
         val transformedSubscription = transform?.invoke(originalSubscription)
 
-        val subscriptionBox = SubscriptionBox(originalSubscription, transformedSubscription, subscriber)
+        val subscriptionBox =
+            SubscriptionBox(originalSubscription, transformedSubscription, subscriber)
 
         // each subscriber has its own potentially different SelectedState that doesn't have to conform to StateType
         @Suppress("UNCHECKED_CAST")
-        this.subscriptions.add(subscriptionBox as SubscriptionBox<State, Any>)
+        subscriptions = subscriptions + subscriptionBox as SubscriptionBox<State, Any>
 
         this._state?.let {
             originalSubscription.newValues(null, it)
         }
     }
 
-    override fun <SelectedState: Any> unsubscribe(subscriber: StoreSubscriber<SelectedState>) {
-        val index = this.subscriptions.indexOfFirst { it.subscriber == subscriber }
-        if (index != -1){
-            this.subscriptions.removeAt(index)
-        }
+    override fun <SelectedState : Any> unsubscribe(subscriber: StoreSubscriber<SelectedState>) {
+        subscriptions = subscriptions.filter { it.subscriber != subscriber }
     }
 
-    fun _defaultDispatch(action: Action){
+    fun _defaultDispatch(action: Action) {
+
         if (isDispatching) {
             throw Exception(
                 "Kraken:ConcurrentMutationError- Action has been dispatched while" +
@@ -133,21 +139,24 @@ class Store<State: StateType> (
         this._state = newState
     }
 
-    override fun dispatch(action: Action){
+    override fun dispatch(action: Action) {
         this.dispatchFunction(action)
     }
 
-    override fun dispatch(actionCreator: ActionCreator<State, StoreType<State>>){
+    override fun dispatch(actionCreator: ActionCreator<State, StoreType<State>>) {
         actionCreator(this.state, this)?.let {
             this.dispatch(it)
         }
     }
 
-    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>){
+    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>) {
         this.dispatch(asyncActionCreator, null)
     }
 
-    override fun dispatch(asyncActionCreator: AsyncActionCreator<State, StoreType<State>>, callback: DispatchCallback<State>?){
+    override fun dispatch(
+        asyncActionCreator: AsyncActionCreator<State, StoreType<State>>,
+        callback: DispatchCallback<State>?
+    ) {
         asyncActionCreator(this.state, this) { actionProvider ->
             val action = actionProvider(this.state, this)
 
