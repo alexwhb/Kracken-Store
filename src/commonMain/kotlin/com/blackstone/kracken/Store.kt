@@ -1,6 +1,10 @@
 package com.blackstone.kracken
 
 import kotlin.concurrent.Volatile
+import kotlin.reflect.KClass
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 
 
 /**
@@ -34,6 +38,8 @@ class Store<State : StateType>(
     automaticallySkipRepeats: Boolean = true
 ) : StoreType<State> {
 
+    private val actionUpdateChannel = Channel<Action>(Channel.CONFLATED)
+
     private var _state: State? = state
         set(value) {
             val oldValue = field
@@ -56,8 +62,7 @@ class Store<State : StateType>(
         .reversed()
         .fold({ action: Action -> this._defaultDispatch(action) }, { dispatchFunction, middleware ->
             val dispatch = { action: Action -> this.dispatch(action) }
-            val getState = { this._state }
-            middleware(dispatch, getState)(dispatchFunction)
+            middleware(dispatch, ::awaitStateAfterAction)(dispatchFunction)
         })
 
 
@@ -141,6 +146,14 @@ class Store<State : StateType>(
 
     override fun dispatch(action: Action) {
         this.dispatchFunction(action)
+        actionUpdateChannel.trySend(action)
+    }
+
+    private suspend fun awaitStateAfterAction(predicate: ((Action) -> Boolean)? = null): State {
+        predicate?.let {
+            actionUpdateChannel.receiveAsFlow().first(predicate)
+        }
+        return state
     }
 
     override fun dispatch(actionCreator: ActionCreator<State, StoreType<State>>) {

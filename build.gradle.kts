@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.blackstone"
-version = "0.3.0"
+version = "0.3.5"
 
 
 repositories {
@@ -32,6 +32,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3" )
+
             }
         }
 

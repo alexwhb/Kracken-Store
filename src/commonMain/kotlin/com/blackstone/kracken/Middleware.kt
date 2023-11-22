@@ -26,4 +26,4 @@ package com.blackstone.kracken
  */
 
 typealias DispatchFunction = (Action) -> Unit
-typealias Middleware<State> = (DispatchFunction, () -> State?) -> (DispatchFunction) -> DispatchFunction
+typealias Middleware<State> = (DispatchFunction, suspend (((Action) -> Boolean)?) -> State?) -> (DispatchFunction) -> DispatchFunction
