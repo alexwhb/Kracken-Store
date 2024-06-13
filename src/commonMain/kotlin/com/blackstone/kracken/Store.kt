@@ -127,7 +127,6 @@ class Store<State : StateType>(
     }
 
     fun _defaultDispatch(action: Action) {
-
         if (isDispatching) {
             throw Exception(
                 "Kraken:ConcurrentMutationError- Action has been dispatched while" +
@@ -137,9 +136,13 @@ class Store<State : StateType>(
             )
         }
 
-        this.isDispatching = true
-        val newState = reducer(action, this._state)
-        this.isDispatching = false
+        val newState = try {
+            this.isDispatching = true
+
+            reducer(action, this._state)
+        } finally {
+            this.isDispatching = false
+        }
 
         this._state = newState
     }
