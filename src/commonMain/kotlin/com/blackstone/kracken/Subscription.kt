@@ -163,7 +163,10 @@ open class Subscription<State: Any> {
      * Sends new values over this subscription. Observers will be notified of these new values.
      */
     fun newValues(oldState: State?, newState: State){
-        this.observer?.invoke(oldState, newState)
+        // TODO This is not the most optimal way to do this because the equals function can be expensive and it would be better to reuse the computation between subscriptions.
+        if (oldState != newState) {
+            this.observer?.invoke(oldState, newState)
+        }
     }
 
     /// A caller can observe new values of this subscription through the provided closure.
